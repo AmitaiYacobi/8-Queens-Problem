@@ -1,6 +1,7 @@
 import random
 import numpy as np
 
+BEST_SCORE = 28
 
 def get_key(dictionary, val):
     for key, value in dictionary.items():
@@ -23,9 +24,7 @@ def generate_population(population_size=100, chromosome_size=8):
 # (for example, the chromosome [1,1,1,1,1,1,1,1] has 8choose2 clashes which is 28)
 # so fitness score will be 28 minus number of clashes in a chromosome
 # so it means that the best score is 28
-
-
-def fitness_function(population):
+def population_fitness(population):
     scores = []
     for chromosome in population:
         clashes = 0
@@ -39,12 +38,22 @@ def fitness_function(population):
         scores.append(28 - clashes)
     return scores
 
+def chromosome_fitness(chromosome):
+    clashes = 0
+    row_clashes = abs(len(chromosome) - len(np.unique(chromosome)))
+    clashes += row_clashes
+    for i in range(len(chromosome)):
+        for j in range(i + 1, len(chromosome)):
+            if abs(i-j) == abs(chromosome[i] - chromosome[j]):
+                clashes += 1
+    return 28 - clashes
 
 def selection(population_scores_dict):
     sum_of_scores = sum(population_scores_dict.values())
     pick = random.uniform(0, sum_of_scores)
     current = 0
     for chromosome, score in population_scores_dict.items():
+        if score == 28: continue
         current += score
         if current > pick:
             return chromosome
@@ -77,7 +86,7 @@ def create_population_scores_dict(population, scores):
 def run_algorithm(population_size=10):
     generation = 0
     population = generate_population(population_size)
-    scores = fitness_function(population)
+    scores = population_fitness(population)
     population_scores_dict = create_population_scores_dict(population, scores)
     best_score = max(population_scores_dict.values())
 
@@ -94,7 +103,7 @@ def run_algorithm(population_size=10):
                 break
 
         population = new_population
-        new_scores = fitness_function(new_population)
+        new_scores = population_fitness(new_population)
         population_scores_dict = create_population_scores_dict(
             new_population, new_scores)
         best_score = max(population_scores_dict.values())
