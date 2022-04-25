@@ -95,7 +95,7 @@ def create_population_scores_dict(population, scores):
     return {tuple(population[i]): scores[i] for i in range(len(scores))}
 
 
-def alitism(popul_scores_dict, p=0.1):
+def elitism(popul_scores_dict, p=0.1):
     """
 
     :param popul_scores_dict: key: chromosom, value: score
@@ -117,26 +117,26 @@ def num_of_solutions(population_scores_dict):
     return solutions
 
 
-def run_algorithm(population_size, crossover_type, crossover_rate, mutation_rate, p_alitism):
+def run_algorithm(population_size, crossover_type, crossover_rate, mutation_rate, p_elitism):
     generation = 0
     population = generate_population(population_size)
     scores = population_fitness(population)
     population_scores_dict = create_population_scores_dict(population, scores)
-    best_score = max(population_scores_dict.values())
+    # best_score = max(population_scores_dict.values())
 
     while num_of_solutions(population_scores_dict) < N_SOLUTIONS: # best_score != 28:
         new_population = []
-        new_population.extend(alitism(population_scores_dict, p=p_alitism))
+        new_population.extend(elitism(population_scores_dict, p=p_elitism))
         remain = len(population) - len(new_population)
-        for _ in range(remain // 2): # run all population except the alitism we pass
+        for _ in range(remain // 2): # run all population except the elitism we pass
             parent1 = selection(population_scores_dict)
             parent2 = selection(population_scores_dict)
             offspring1, offspring2 = crossover(parent1, parent2, crossove_type=crossover_type, rate=crossover_rate)
             offspring1, offspring2 = mutation(offspring1, offspring2, rate=mutation_rate)
             new_population.append(offspring1)
             new_population.append(offspring2)
-            if len(new_population) == population_size:
-                break
+            # if len(new_population) == population_size:
+            #     break
 
         population = new_population
         new_scores = population_fitness(new_population)
@@ -152,13 +152,13 @@ def run_algorithm(population_size, crossover_type, crossover_rate, mutation_rate
 
 if __name__ == "__main__":
     config = {
-        "population_size" : 1000,
+        "population_size" : 300,
         "crossover_type": singlepoint_crossover,
         "crossover_rate": "random",
         "mutation_rate": 0.2,
-        "p_alitism": 0.2
+        "p_elitism": 0.2
     }
-    N_SOLUTIONS = 92
+    N_SOLUTIONS = 10
     solutions = []
     population, num_of_generations = run_algorithm(**config)
     print("finish one running")
