@@ -158,22 +158,15 @@ if __name__ == "__main__":
         "mutation_rate": 0.2,
         "p_alitism": 0.2
     }
-    N_SOLUTIONS = 10
-    solutions_counter = 0
+    N_SOLUTIONS = 92
     solutions = []
-    iteration = 0
-    sum_generations = 0
-    while solutions_counter < N_SOLUTIONS:
-        population, num_of_generations = run_algorithm(**config)
-        iteration += 1
-        sum_generations += num_of_generations
-        print("finish one running")
-        for chromosome, score in population.items():
-            if score == 28:
-                solutions_counter += 1
-                solutions.append(chromosome)
+    population, num_of_generations = run_algorithm(**config)
+    print("finish one running")
+    for chromosome, score in population.items():
+        if score == 28:
+            solutions.append(chromosome)
 
-    print(f"sum of generations: {sum_generations}, avg generations: {sum_generations/iteration}")
+    print(f"sum of generations: {num_of_generations}")
     print("solutoins:")
     print(solutions)
 
