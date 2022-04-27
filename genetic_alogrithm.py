@@ -1,18 +1,13 @@
 import random
 import numpy as np
 
-BEST_SCORE = 28
+from tools import *
 
-def get_key(dictionary, val):
-    for key, value in dictionary.items():
-        if val == value:
-            return key
-    return "key doesn't exist"
+BEST_SCORE = 28
 
 
 def generate_chromosome(chromosome_size):
     return [random.randint(0, 7) for _ in range(chromosome_size)]
-
 
 def generate_population(population_size=100, chromosome_size=8):
     population = []
@@ -20,11 +15,13 @@ def generate_population(population_size=100, chromosome_size=8):
         population.append(generate_chromosome(chromosome_size))
     return population
 
-# the max number of clashes in chromosome is 28
-# (for example, the chromosome [1,1,1,1,1,1,1,1] has 8choose2 clashes which is 28)
-# so fitness score will be 28 minus number of clashes in a chromosome
-# so it means that the best score is 28
 def population_fitness(population):
+    """
+     the max number of clashes in chromosome is 28
+     (for example, the chromosome [1,1,1,1,1,1,1,1] has 8choose2 clashes which is 28)
+     so fitness score will be 28 minus number of clashes in a chromosome
+     so it means that the best score is 28
+    """
     scores = []
     for chromosome in population:
         clashes = 0
@@ -80,7 +77,6 @@ def crossover(parent1, parent2, crossove_type=singlepoint_crossover, rate="rando
     """
     return crossove_type(parent1, parent2, rate=rate)
 
-
 def mutation(offspring1, offspring2, rate=0.4):
     offspring1 = list(offspring1)
     offspring2 = list(offspring2)
@@ -90,14 +86,8 @@ def mutation(offspring1, offspring2, rate=0.4):
             offspring2[i] = random.randint(0, 7)
     return tuple(offspring1), tuple(offspring2)
 
-
-def create_population_scores_dict(population, scores):
-    return {tuple(population[i]): scores[i] for i in range(len(scores))}
-
-
 def elitism(popul_scores_dict, p=0.1):
     """
-
     :param popul_scores_dict: key: chromosom, value: score
     :param p: float (percentage) how many besh chromosoms to pass to the next generation.
     :return: list of best chromosoms
@@ -105,60 +95,57 @@ def elitism(popul_scores_dict, p=0.1):
     n_best = int(p * len(popul_scores_dict))
     sorted_popul = sorted(popul_scores_dict.items(), key=lambda item: item[1], reverse=True)
     best = sorted_popul[:n_best]
-    best_rep = [s[0] for s in best] # save the representation of each solution from the best ones
+    best_rep = [s[0] for s in best] 
     return best_rep
-
-
-def num_of_solutions(population_scores_dict):
-    solutions = 0
-    for c, v in population_scores_dict.items():
-        if v == 28:
-            solutions += 1
-    return solutions
-
 
 def run_algorithm(population_size, crossover_type, crossover_rate, mutation_rate, p_elitism):
     generation = 0
+    generations = []
+    best_scores = []
+    average_scores = []
     population = generate_population(population_size)
     scores = population_fitness(population)
     population_scores_dict = create_population_scores_dict(population, scores)
-    # best_score = max(population_scores_dict.values())
 
-    while num_of_solutions(population_scores_dict) < N_SOLUTIONS: # best_score != 28:
+    while num_of_solutions(population_scores_dict) < N_SOLUTIONS: 
         new_population = []
         new_population.extend(elitism(population_scores_dict, p=p_elitism))
         remain = len(population) - len(new_population)
-        for _ in range(remain // 2): # run all population except the elitism we pass
+        for _ in range(remain // 2): 
             parent1 = selection(population_scores_dict)
             parent2 = selection(population_scores_dict)
             offspring1, offspring2 = crossover(parent1, parent2, crossove_type=crossover_type, rate=crossover_rate)
             offspring1, offspring2 = mutation(offspring1, offspring2, rate=mutation_rate)
             new_population.append(offspring1)
             new_population.append(offspring2)
-            # if len(new_population) == population_size:
-            #     break
 
+        generation += 1
         population = new_population
         new_scores = population_fitness(new_population)
-        population_scores_dict = create_population_scores_dict(
-            new_population, new_scores)
+        population_scores_dict = create_population_scores_dict(new_population, new_scores)
         best_score = max(population_scores_dict.values())
+        average_score = sum([v for k, v in population_scores_dict.items()]) / len(population_scores_dict)
+        
+        best_scores.append(int(best_score))
+        average_scores.append(float(average_score))
+        generations.append(int(generation))
+
         best_chromosome = get_key(population_scores_dict, best_score)
         print(f"chromosome: {best_chromosome} score: {best_score}")
-        generation += 1
 
+    generate_graph(generations, best_scores, average_scores)
     return population_scores_dict, generation
 
 
 if __name__ == "__main__":
     config = {
-        "population_size" : 300,
+        "population_size" : 500,
         "crossover_type": singlepoint_crossover,
         "crossover_rate": "random",
         "mutation_rate": 0.2,
         "p_elitism": 0.2
     }
-    N_SOLUTIONS = 10
+    N_SOLUTIONS = 1
     solutions = []
     population, num_of_generations = run_algorithm(**config)
     print("finish one running")
@@ -167,10 +154,7 @@ if __name__ == "__main__":
             solutions.append(chromosome)
 
     print(f"sum of generations: {num_of_generations}")
+    print(f"Number of solutions: {N_SOLUTIONS}")
     print("solutoins:")
     print(solutions)
 
-    # print("\n##################################")
-    # print(
-    #     f"solution found after {num_of_generations} generations")
-    # print("##################################\n")
